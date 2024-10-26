@@ -39,7 +39,7 @@ const SelectPage = () => {
   const changeRole = async (user) => {
     try {
       const response = await fetch(
-        "http://localhost:3001/assignRole/updateRoleForUser",
+        "http://localhost:3001/assignRole/updateRole",
         {
           method: "POST",
           headers: {
