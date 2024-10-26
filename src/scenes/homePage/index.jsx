@@ -71,18 +71,20 @@ const SelectPage = () => {
           id: user._id,
         }),
       });
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
+  
       const data = await response.json();
+  
+      if (!response.ok) {
+        throw new Error(data.error || "Network response was not ok");
+      }
+  
+      // Update Redux store and component state
       dispatch(updateUserRole({ role: roleUser }));
       setIsEditing(false);
-      return data;
     } catch (error) {
-      console.error("Error fetching data:", error);
+      console.error("Error assigning role:", error);
     }
   };
-
   return (
     <>
       <Box
