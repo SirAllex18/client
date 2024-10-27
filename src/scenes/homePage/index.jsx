@@ -17,6 +17,7 @@ const SelectPage = () => {
   const [isEditing, setIsEditing] = useState(
     user.role === "" || user.role === undefined
   );
+  const [refreshTable, setRefreshTable] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -38,8 +39,9 @@ const SelectPage = () => {
 
   const changeRole = async (user) => {
     try {
+      const fullName = user.firstName + user.lastName;
       const response = await fetch(
-        "http://localhost:3001/assignRole/updateRoleForUser",
+        "http://localhost:3001/assignRole/updateRole",
         {
           method: "POST",
           headers: {
@@ -48,6 +50,7 @@ const SelectPage = () => {
           body: JSON.stringify({
             id: user._id,
             roleUser: user.role,
+            name: fullName
           }),
         }
       );
@@ -56,6 +59,7 @@ const SelectPage = () => {
       console.log(err);
     }
   };
+  
   const assignRole = async () => {
     try {
       const response = await fetch("http://localhost:3001/assignRole/role", {
@@ -78,9 +82,9 @@ const SelectPage = () => {
         throw new Error(data.error || "Network response was not ok");
       }
   
-      // Update Redux store and component state
       dispatch(updateUserRole({ role: roleUser }));
       setIsEditing(false);
+      setRefreshTable((prev) => !prev);
     } catch (error) {
       console.error("Error assigning role:", error);
     }
@@ -181,7 +185,7 @@ const SelectPage = () => {
           Other participants to the party:
         </Typography>
         <Box sx={{ marginBottom: "3rem" }}>
-          <CustomizedTables />
+        <CustomizedTables refreshTable={refreshTable} />
         </Box>
       </Container>
     </>

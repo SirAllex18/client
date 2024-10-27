@@ -29,7 +29,7 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
   },
 }));
 
-const CustomizedTables = () => {
+const CustomizedTables = (refreshTable) => {
   const roles = ["Snacks", "Drinks", "Decorations", "Vibes"];
   const [rows, setRows] = useState([]);
   const [maxUsers, setMaxUsers] = useState(0);
@@ -74,7 +74,7 @@ const CustomizedTables = () => {
       setMaxUsers(maxUsersCount);
     };
     fetchData();
-  }, []);
+  }, [refreshTable]);
 
   return (
     <TableContainer component={Paper}>
