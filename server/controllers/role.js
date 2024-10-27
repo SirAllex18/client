@@ -5,28 +5,29 @@ export const assignRole = async (req, res) => {
   try {
     const { roleUser, firstName, lastName, buget, id } = req.body;
 
-    // Fetch user by ID
     const user = await User.findById(id);
-
     if (!user) {
-      // User not found
       return res.status(404).json({ error: "User not found" });
-    }
-    if (user.role) {
-      return res
-        .status(400)
-        .json({ error: "User already has a role assigned" });
     }
 
     user.role = roleUser;
     await user.save();
+
+    const existingParty = await Party.findOne({ role: roleUser });
+    const userInfo = { firstName, lastName, buget };
+
+    if (existingParty) {
+      existingParty.users.push(userInfo);
+      await existingParty.save();
+    } else {
+      await Party.create({ role: roleUser, users: [userInfo] });
+    }
 
     return res
       .status(200)
       .json({ message: "Role assigned successfully", user });
   } catch (error) {
     console.error(error);
-    // Send error response
     return res.status(500).json({ error: error.message });
   }
 };
@@ -34,7 +35,7 @@ export const assignRole = async (req, res) => {
 export const getUsersByRole = async (req, res) => {
   try {
     const { roleToFind } = req.body;
-    console.log(roleToFind);
+
     const roleFind = await Party.findOne({ role: roleToFind });
     const users = roleFind.users;
     res.status(200).json({ users });
@@ -45,20 +46,39 @@ export const getUsersByRole = async (req, res) => {
 
 export const updateRoleForUser = async (req, res) => {
   try {
-    const { id, roleUser } = req.body;
-
-    const updatedUserRole = await User.findByIdAndUpdate(
-      id,
-      { role: roleUser },
-      { new: true, runValidators: true }
-    );
-    if (!updatedUserRole) {
+    const { id, roleUser, name } = req.body;
+    const user = await User.findById(id);
+    if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
+    
+    const oldRole = user.role;
+    user.role = roleUser;
+    await user.save();
+
+    if (oldRole) {
+      await Party.findOneAndUpdate(
+        { role: oldRole },
+        { $pull: { users: { firstName: user.firstName, lastName: user.lastName } } },
+        { new: true }
+      );
+    }
+
+    const newParty = await Party.findOne({ role: roleUser });
+    const userInfo = { firstName: user.firstName, lastName: user.lastName, buget: user.buget };
+
+    if (newParty) {
+      newParty.users.push(userInfo);
+      await newParty.save();
+    } else {
+      await Party.create({ role: roleUser, users: [userInfo] });
+    }
+
     res
       .status(200)
-      .json({ message: "User updated successfully", user: updatedUserRole });
+      .json({ message: "Role updated successfully", user });
   } catch (err) {
     console.log(err);
+    res.status(500).json({ error: err.message });
   }
 };
